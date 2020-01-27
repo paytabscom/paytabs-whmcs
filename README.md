@@ -1,4 +1,4 @@
-# paytabs-whmcs
+# PayTabs-whmcs
 The official PayTabs WHMCS payment plugin.
 
 ## Install the plugin:
