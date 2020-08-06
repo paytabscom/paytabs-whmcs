@@ -31,10 +31,12 @@ if (!$gatewayParams['type']) {
 	die("Module Not Activated");
 }
 
+require_once '../paytabs_files/paytabs_core.php';
+
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
 $invoiceId = $_REQUEST["invoiceid"];
-$transactionId = $_POST['payment_reference']; //transaction id from paytabs
+$paymentRef = $_POST['payment_reference']; //transaction id from paytabs
 
 $Email = $gatewayParams['Email'];
 $SecretKey = $gatewayParams['SecretKey'];
@@ -48,20 +50,15 @@ $SecretKey = $gatewayParams['SecretKey'];
  * way of a shared secret which is used to build and compare a hash.
  */
 
-$pt = new paytabs($Email, $SecretKey);
-$verify_response = $pt->verify_payment($transactionId);
+$pt = PaytabsApi::getInstance($Email, $SecretKey);
+$verify_response = $pt->verify_payment($paymentRef);
 
+$success = $verify_response->success;
+$message = $verify_response->result;
+$transactionId = $verify_response->transaction_id;
 $paymentAmount = $verify_response->amount;
 $paymentCurrency = $verify_response->currency;
 
-//if get response successful
-if ($verify_response->response_code == 100) {
-	$success = true;
-	$res_msg = $verify_response->result;
-} else {
-	$success = false;
-	$res_msg = $verify_response->result;
-}
 
 /**
  * Validate Callback Invoice ID.
@@ -78,17 +75,6 @@ if ($verify_response->response_code == 100) {
  */
 $invoiceId = checkCbInvoiceID($invoiceId, $gatewayParams['name']);
 
-/**
- * Check Callback Transaction ID.
- *
- * Performs a check for any existing transactions with the same given
- * transaction number.
- *
- * Performs a die upon encountering a duplicate.
- *
- * @param string $transactionId Unique Transaction ID
- */
-checkCbTransID($transactionId);
 
 /**
  * Log Transaction.
@@ -107,6 +93,19 @@ logTransaction($gatewayParams['name'], $_POST, $transactionStatus);
 
 if ($success) {
 	/**
+	 * Check Callback Transaction ID.
+	 *
+	 * Performs a check for any existing transactions with the same given
+	 * transaction number.
+	 *
+	 * Performs a die upon encountering a duplicate.
+	 *
+	 * @param string $transactionId Unique Transaction ID
+	 */
+	checkCbTransID($transactionId);
+
+
+	/**
 	 * Add Invoice Payment.
 	 *
 	 * Applies a payment transaction entry to the given invoice ID.
@@ -124,6 +123,8 @@ if ($success) {
 		$paymentFee,
 		$gatewayModuleName
 	);
+} else {
+	logTransaction($gatewayParams['name'], json_encode($verify_response), $transactionStatus);
 }
 
 redirectToInvoice($success);
