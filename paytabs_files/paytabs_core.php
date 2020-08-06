@@ -1379,8 +1379,7 @@ class PaytabsApi
         '10' => ['name' => 'amex', 'title' => 'PayTabs - Amex', 'currencies' => ['AED', 'SAR']],
         '11' => ['name' => 'valu', 'title' => 'PayTabs - valU', 'currencies' => ['EGP']],
     ];
-    // const BASE_URL = 'https://www.paytabs.com/';
-    const BASE_URL = 'https://dev1.paytabs.net/';
+    const BASE_URL = 'https://www.paytabs.com/';
 
     const AUTHENTICATION_URL = PaytabsApi::BASE_URL . 'apiv2/validate_secret_key';
     const PAYPAGE_URL        = PaytabsApi::BASE_URL . 'apiv2/create_pay_page';
