@@ -20,7 +20,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '2.1.0');
+define('PAYTABS_PAYPAGE_VERSION', '2.1.1');
 require_once 'paytabs_files/paytabs_core.php';
 
 /**
@@ -146,7 +146,7 @@ function paytabs_link($params)
     $returnUrl = $params['returnurl'];
     $langPayNow = $params['langpaynow'];
     $moduleName = $params['paymentmethod'];
-    $whmcsVersion = $params['whmcsVersion'];
+    $whmcsVersion = 'WHMCS ' . $params['whmcsVersion'];
 
     // Computed Parameters
     $billing_address = $address1 . ' ' . $address2;

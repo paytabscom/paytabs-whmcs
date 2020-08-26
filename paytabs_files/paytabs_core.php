@@ -8,7 +8,7 @@ function paytabs_error_log($message)
 
 /**
  * PayTabs PHP SDK
- * Version: 1.2.0
+ * Version: 1.2.2
  */
 
 
@@ -675,7 +675,7 @@ class PaytabsHelper
 class PaytabsHolder
 {
     const GLUE = ' || ';
-    const THRESHOLD = 0.0;
+    const THRESHOLD = -1.0;
 
     /**
      * payment_type
@@ -804,11 +804,11 @@ class PaytabsHolder
 
         $sums += $other_charges;
 
-        $diff = $amount - $sums;
+        $diff = round($amount - $sums, 2);
         if ($diff != 0) {
             $_logParams = json_encode($pay);
 
-            if (self::THRESHOLD > 0 && abs($diff) > self::THRESHOLD) {
+            if (self::THRESHOLD >= 0 && abs($diff) > self::THRESHOLD) {
                 PaytabsHelper::log("PaytabsHelper::round_amount: diff = {$diff}, [{$_logParams}]", 3);
             } else {
                 PaytabsHelper::log("PaytabsHelper::round_amount: diff = {$diff} added to 'other_charges', [{$_logParams}]", 2);
@@ -1398,10 +1398,10 @@ class PaytabsApi
 
     //
 
-    public static function getInstance($merchant_email, $secret_key)
+    public static function getInstance($merchant_id, $key)
     {
         if (self::$instance == null) {
-            self::$instance = new PaytabsApi($merchant_email, $secret_key);
+            self::$instance = new PaytabsApi($merchant_id, $key);
         }
 
         // self::$instance->setAuth($merchant_email, $secret_key);
@@ -1495,7 +1495,7 @@ class PaytabsApi
 
     /**
      * paypage structure: null || stdClass->[result | details, response_code, payment_url, p_id]
-     * @return paypage structure: stdClass->[success, result, response_code, payment_url, p_id]
+     * @return paypage structure: stdClass->[success, result|message, response_code, payment_url, p_id]
      */
     private function enhance($paypage)
     {
@@ -1515,6 +1515,8 @@ class PaytabsApi
             $_paypage->result = $msg;
         }
 
+        $_paypage->message = $_paypage->result;
+
         return $_paypage;
     }
 
@@ -1530,6 +1532,8 @@ class PaytabsApi
 
             $_verify->success = isset($verify->response_code) && $verify->response_code == 100;
         }
+
+        $_verify->message = $_verify->result;
 
         return $_verify;
     }
@@ -1550,6 +1554,8 @@ class PaytabsApi
                 $_refund->success = false;
             }
         }
+
+        $_refund->message = $_refund->result;
 
         return $_refund;
     }
