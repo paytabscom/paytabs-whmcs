@@ -32,14 +32,12 @@ if (!$gatewayParams['type']) {
 }
 
 require_once '../paytabs_files/paytabs_core.php';
+require_once '../paytabs_files/paytabs_functions.php';
 
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
 $invoiceId = $_REQUEST["invoiceid"];
 $paymentRef = $_POST['payment_reference']; //transaction id from paytabs
-
-$Email = $gatewayParams['Email'];
-$SecretKey = $gatewayParams['SecretKey'];
 
 
 /**
@@ -50,12 +48,13 @@ $SecretKey = $gatewayParams['SecretKey'];
  * way of a shared secret which is used to build and compare a hash.
  */
 
-$pt = PaytabsApi::getInstance($Email, $SecretKey);
+$pt = paytabs_getApi($gatewayParams);
 $verify_response = $pt->verify_payment($paymentRef);
 
 $success = $verify_response->success;
-$message = $verify_response->result;
+$message = $verify_response->message;
 $transactionId = $verify_response->transaction_id;
+
 $paymentAmount = $verify_response->amount;
 $paymentCurrency = $verify_response->currency;
 

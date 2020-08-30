@@ -1,11 +1,5 @@
 <?php
 
-function paytabs_error_log($message)
-{
-    logTransaction('paytabs', $message, 'Failure');
-}
-
-
 /**
  * PayTabs PHP SDK
  * Version: 1.2.2

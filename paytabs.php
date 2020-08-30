@@ -20,8 +20,9 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '2.1.1');
+define('PAYTABS_PAYPAGE_VERSION', '2.1.2');
 require_once 'paytabs_files/paytabs_core.php';
+require_once 'paytabs_files/paytabs_functions.php';
 
 /**
  * Define module related meta data.
@@ -69,12 +70,12 @@ function paytabs_config()
             'Type' => 'System',
             'Value' => 'PayTabs - Think Cashless',
         ),
-        'Email' => array(
+        'MerchantId' => array(
             'FriendlyName' => 'Merchant Email',
             'Type' => 'text',
             'Size' => '35',
         ),
-        'SecretKey' => array(
+        'MerchantKey' => array(
             'FriendlyName' => 'Secret Key',
             'Type' => 'text',
             'Size' => '55',
@@ -113,8 +114,8 @@ function paytabs_link($params)
     /** 1. Read required Params */
 
     // Gateway Configuration Parameters
-    $_merchant_email = $params['Email'];
-    $_secretKey = $params['SecretKey'];
+    $pt = paytabs_getApi($params);
+
     $_hide_personal_info = (bool) $params['hide_personal_info'];
     $_hide_billing = (bool)$params['hide_billing'];
     $_hide_view_invoice = (bool) $params['hide_view_invoice'];
@@ -223,13 +224,13 @@ function paytabs_link($params)
 
     $post_arr = $pt_holder->pt_build(true);
 
+
     /** 3. Send a request to build the pay page */
 
-    $pt = PaytabsApi::getInstance($_merchant_email, $_secretKey);
     $paypage = $pt->create_pay_page($post_arr);
 
     $success = $paypage->success;
-    $message = $paypage->result;
+    $message = $paypage->message;
     $payment_url = @$paypage->payment_url;
 
 
@@ -264,15 +265,13 @@ function paytabs_link($params)
 function paytabs_refund($params)
 {
     // Gateway Configuration Parameters
-    $_merchant_email = $params['Email'];
-    $_secretKey = $params['SecretKey'];
+    $pt = paytabs_getApi($params);
 
     // Transaction Parameters
     $transactionIdToRefund = $params['transid'];
     $refundAmount = $params['amount'];
     // $currencyCode = $params['currency'];
 
-    $pt = PaytabsApi::getInstance($_merchant_email, $_secretKey);
 
     $pt_refundHolder = new PaytabsRefundHolder();
     $pt_refundHolder
@@ -284,7 +283,7 @@ function paytabs_refund($params)
     $refundRes = $pt->refund($values);
 
     $success = $refundRes->success;
-    $message = $refundRes->result;
+    $message = $refundRes->message;
     $pending_success = $refundRes->pending_success;
     $refundTransactionId = @$refundRes->refund_request_id;
     if (!$refundTransactionId) $refundTransactionId = 0;
