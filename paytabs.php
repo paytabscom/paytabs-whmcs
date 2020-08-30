@@ -20,8 +20,8 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '2.1.2');
-require_once 'paytabs_files/paytabs_core.php';
+define('PAYTABS_PAYPAGE_VERSION', '2.2.1.2');
+require_once 'paytabs_files/paytabs_core2.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
 /**
@@ -71,26 +71,18 @@ function paytabs_config()
             'Value' => 'PayTabs - Think Cashless',
         ),
         'MerchantId' => array(
-            'FriendlyName' => 'Merchant Email',
+            'FriendlyName' => 'Profile ID',
             'Type' => 'text',
             'Size' => '35',
         ),
         'MerchantKey' => array(
-            'FriendlyName' => 'Secret Key',
+            'FriendlyName' => 'Server Key',
             'Type' => 'text',
             'Size' => '55',
         ),
-        'hide_personal_info' => array(
-            'FriendlyName' => 'Hide personal information',
+        'hide_shipping' => array(
+            'FriendlyName' => 'Hide shipping information',
             'Type'         => 'yesno',
-        ),
-        'hide_billing' => array(
-            'FriendlyName' => 'Hide billing info',
-            'Type'         => 'yesno',
-        ),
-        'hide_view_invoice' => array(
-            'FriendlyName' => 'Hide view invoice',
-            'Type'        => 'yesno',
         ),
     );
 }
@@ -116,9 +108,7 @@ function paytabs_link($params)
     // Gateway Configuration Parameters
     $pt = paytabs_getApi($params);
 
-    $_hide_personal_info = (bool) $params['hide_personal_info'];
-    $_hide_billing = (bool)$params['hide_billing'];
-    $_hide_view_invoice = (bool) $params['hide_view_invoice'];
+    $_hide_shipping = (bool)$params['hide_shipping'];
 
 
     // Invoice Parameters
@@ -138,7 +128,7 @@ function paytabs_link($params)
     $postcode  = $params['clientdetails']['postcode'];
     $country   = $params['clientdetails']['country'];
     $phone     = $params['clientdetails']['phonenumber'];
-    $phone_cc  = $params['clientdetails']['phonecc'];
+    // $phone_cc  = $params['clientdetails']['phonecc'];
 
 
     // System Parameters
@@ -147,7 +137,7 @@ function paytabs_link($params)
     $returnUrl = $params['returnurl'];
     $langPayNow = $params['langpaynow'];
     $moduleName = $params['paymentmethod'];
-    $whmcsVersion = 'WHMCS ' . $params['whmcsVersion'];
+    // $whmcsVersion = 'WHMCS ' . $params['whmcsVersion'];
 
     // Computed Parameters
     $billing_address = $address1 . ' ' . $address2;
@@ -155,74 +145,49 @@ function paytabs_link($params)
     $returnUrl = $callbackUrl . '?invoiceid=' . $invoiceId;
 
 
-    $products = invoice_products($invoiceId);
+    // $products = invoice_products($invoiceId);
 
-    $items_arr = array_map(function ($p) {
-        return [
-            'name' => $p['description'],
-            'quantity' => '1',
-            'price' => $p['amount']
-        ];
-    }, $products);
+    // $items_arr = array_map(function ($p) {
+    //     return [
+    //         'name' => $p['description'],
+    //         'quantity' => '1',
+    //         'price' => $p['amount']
+    //     ];
+    // }, $products);
 
 
     /** 2. Fill post array */
 
     $country = PaytabsHelper::countryGetiso3($country);
 
-    $pt_holder = new PaytabsHolder();
+    $pt_holder = new PaytabsHolder2();
     $pt_holder->set01PaymentCode('')
-        ->set02ReferenceNum($invoiceId)
-        ->set03InvoiceInfo(
-            $firstname . ' ' . $lastname,
-            'English'
-        )
-        ->set04Payment(
+        ->set02Transaction('sale', 'ecom')
+        ->set03Cart(
+            $invoiceId,
             $currencyCode,
             $amount,
-            0,
-            0
+            $description
         )
-        ->set05Products($items_arr)
-        ->set06CustomerInfo(
-            $firstname,
-            $lastname,
-            $phone_cc,
+        ->set04CustomerDetails(
+            $firstname . ' ' . $lastname,
+            $email,
             $phone,
-            $email
-        )
-        ->set07Billing(
             $billing_address,
-            $state,
             $city,
-            $postcode,
-            $country
-        )
-        ->set08Shipping(
-            $firstname,
-            $lastname,
-            $billing_address,
             $state,
-            $city,
+            $country,
             $postcode,
-            $country
+            null
         )
-        ->set09HideOptions(
-            $_hide_personal_info,
-            $_hide_billing,
-            $_hide_view_invoice
-        )
-        ->set10URLs(
-            $systemUrl,
-            $returnUrl
-        )
-        ->set11CMSVersion($whmcsVersion)
-        ->set12IPCustomer('');
+        ->set06HideShipping($_hide_shipping)
+        ->set07URLs($returnUrl, null)
+        ->set08Lang('en');
 
 
     //
 
-    $post_arr = $pt_holder->pt_build(true);
+    $post_arr = $pt_holder->pt_build();
 
 
     /** 3. Send a request to build the pay page */
@@ -239,6 +204,7 @@ function paytabs_link($params)
     if ($success) {
 
         $htmlOutput = '<form method="post" action="' . $payment_url . '">';
+        $htmlOutput .= '<input type="hidden" value="1" name="temp" />';
         $htmlOutput .= '<input type="submit" value="' . $langPayNow . '" class="btn btn-primary" />';
         $htmlOutput .= '</form>';
     } else {
@@ -270,13 +236,14 @@ function paytabs_refund($params)
     // Transaction Parameters
     $transactionIdToRefund = $params['transid'];
     $refundAmount = $params['amount'];
-    // $currencyCode = $params['currency'];
+    $currencyCode = $params['currency'];
+    $cart_id = $params['invoiceid'];
 
 
     $pt_refundHolder = new PaytabsRefundHolder();
     $pt_refundHolder
-        ->set01RefundInfo($refundAmount, 'Admin panel')
-        ->set02Transaction($transactionIdToRefund);
+        ->set01RefundInfo($refundAmount, $currencyCode)
+        ->set02Transaction($cart_id, $transactionIdToRefund, 'Admin panel');
 
     $values = $pt_refundHolder->pt_build();
 

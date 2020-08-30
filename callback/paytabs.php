@@ -31,14 +31,17 @@ if (!$gatewayParams['type']) {
 	die("Module Not Activated");
 }
 
-require_once '../paytabs_files/paytabs_core.php';
+require_once '../paytabs_files/paytabs_core2.php';
 require_once '../paytabs_files/paytabs_functions.php';
 
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
 $invoiceId = $_REQUEST["invoiceid"];
-$paymentRef = $_POST['payment_reference']; //transaction id from paytabs
+$paymentRef = $_POST['tranRef']; //transaction id from paytabs
 
+if (!$paymentRef) {
+	die('Payment reference is missing');
+}
 
 /**
  * Validate callback authenticity.
@@ -55,8 +58,8 @@ $success = $verify_response->success;
 $message = $verify_response->message;
 $transactionId = $verify_response->transaction_id;
 
-$paymentAmount = $verify_response->amount;
-$paymentCurrency = $verify_response->currency;
+$paymentAmount = $verify_response->cart_amount;
+$paymentCurrency = $verify_response->cart_currency;
 
 
 /**
