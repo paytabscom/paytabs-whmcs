@@ -23,8 +23,8 @@ Copy the plugin files to `modules/gateways/`
 2. Navigate to `Setup >> Payments >> Payment Gateways`
 3. Open `Manage Existing Gateways` tab
 4. look for `PayTabs` section, And enter all the details like `Display Name`, `hide ...`
-   - **Merchant e-Mail**: Enter the **email id** of your PayTabs merchant account
-   - **Secret Key**: `Merchant’s Dashboard >> Secret Key`
+   - **Profile ID**: Enter the **Profile ID** of your PayTabs account
+   - **Server Key**: `Merchant’s Dashboard >> Developers >> Key management >> Server Key`
 5. Click on `Save Changes` button
 
 - - -
