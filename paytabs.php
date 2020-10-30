@@ -20,7 +20,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '2.1.2');
+define('PAYTABS_PAYPAGE_VERSION', '2.1.3');
 require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
@@ -238,7 +238,7 @@ function paytabs_link($params)
 
     if ($success) {
 
-        $htmlOutput = '<form method="post" action="' . $payment_url . '">';
+        $htmlOutput = '<form method="get" action="' . $payment_url . '">';
         $htmlOutput .= '<input type="submit" value="' . $langPayNow . '" class="btn btn-primary" />';
         $htmlOutput .= '</form>';
     } else {
