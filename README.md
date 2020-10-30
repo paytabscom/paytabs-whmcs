@@ -37,4 +37,6 @@ follow the steps:
 1. Open `Admin panel`
 2. Navigate to `Billing >> Gateway Log`
 
+- - -
+
 Done
