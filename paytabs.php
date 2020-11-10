@@ -20,7 +20,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '2.2.1.3');
+define('PAYTABS_PAYPAGE_VERSION', '2.2.2.0');
 require_once 'paytabs_files/paytabs_core2.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
@@ -69,6 +69,12 @@ function paytabs_config()
         'FriendlyName' => array(
             'Type' => 'System',
             'Value' => 'PayTabs - Think Cashless',
+        ),
+        'Endpoint' => array(
+            "FriendlyName" => "Endpoint region",
+            "Type" => "dropdown",
+            "Options" => PaytabsApi::getEndpoints(),
+            "Default" => "ARE",
         ),
         'MerchantId' => array(
             'FriendlyName' => 'Profile ID',
