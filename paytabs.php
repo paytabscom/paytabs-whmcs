@@ -1,18 +1,8 @@
 <?php
 
 /**
- * Within the module itself, all functions must be prefixed with the module
- * filename, followed by an underscore, and then the function name. For this
- * example file, the filename is "gatewaymodule" and therefore all functions
- * begin "paytabs_".
- *
- * If your module or third party API does not support a given function, you
- * should not define that function within your module. Only the _config
- * function is required.
- *
- * For more information, please refer to the online documentation.
- *
- * @see https://developers.whmcs.com/payment-gateways/
+ * Name:    PayTabs payment gateway
+ * Version: 3.0.0
  */
 
 if (!defined("WHMCS")) {
@@ -20,7 +10,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '2.2.2.0');
+define('PAYTABS_PAYPAGE_VERSION', '3.0.0');
 require_once 'paytabs_files/paytabs_core2.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
