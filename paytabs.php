@@ -10,8 +10,8 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '3.0.0');
-require_once 'paytabs_files/paytabs_core2.php';
+define('PAYTABS_PAYPAGE_VERSION', '3.1.0');
+require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
 /**
@@ -133,7 +133,7 @@ function paytabs_link($params)
     $returnUrl = $params['returnurl'];
     $langPayNow = $params['langpaynow'];
     $moduleName = $params['paymentmethod'];
-    // $whmcsVersion = 'WHMCS ' . $params['whmcsVersion'];
+    $whmcsVersion = $params['whmcsVersion'];
 
     // Computed Parameters
     $billing_address = $address1 . ' ' . $address2;
@@ -154,11 +154,11 @@ function paytabs_link($params)
 
     /** 2. Fill post array */
 
-    $country = PaytabsHelper::countryGetiso3($country);
+    // $country = PaytabsHelper::countryGetiso3($country);
 
-    $pt_holder = new PaytabsHolder2();
-    $pt_holder->set01PaymentCode('')
-        ->set02Transaction('sale', 'ecom')
+    $pt_holder = new PaytabsRequestHolder();
+    $pt_holder->set01PaymentCode('all')
+        ->set02Transaction(PaytabsEnum::TRAN_TYPE_SALE, PaytabsEnum::TRAN_CLASS_ECOM)
         ->set03Cart(
             $invoiceId,
             $currencyCode,
@@ -178,7 +178,8 @@ function paytabs_link($params)
         )
         ->set06HideShipping($_hide_shipping)
         ->set07URLs($returnUrl, null)
-        ->set08Lang('en');
+        ->set08Lang('en')
+        ->set99PluginInfo('WHMCS', $whmcsVersion, PAYTABS_PAYPAGE_VERSION);
 
 
     //
@@ -235,14 +236,15 @@ function paytabs_refund($params)
     $cart_id = $params['invoiceid'];
 
 
-    $pt_refundHolder = new PaytabsRefundHolder();
+    $pt_refundHolder = new PaytabsFollowupHolder();
     $pt_refundHolder
-        ->set01RefundInfo($refundAmount, $currencyCode)
-        ->set02Transaction($cart_id, $transactionIdToRefund, 'Admin panel');
+        ->set02Transaction(PaytabsEnum::TRAN_TYPE_REFUND, PaytabsEnum::TRAN_CLASS_ECOM)
+        ->set03Cart($cart_id, $currencyCode, $refundAmount, 'Admin panel')
+        ->set30TransactionInfo($transactionIdToRefund);
 
     $values = $pt_refundHolder->pt_build();
 
-    $refundRes = $pt->refund($values);
+    $refundRes = $pt->request_followup($values);
 
     $success = $refundRes->success;
     $message = $refundRes->message;

@@ -25,7 +25,7 @@ if (!$gatewayParams['type']) {
 	die("Module Not Activated");
 }
 
-require_once '../paytabs_files/paytabs_core2.php';
+require_once '../paytabs_files/paytabs_core.php';
 require_once '../paytabs_files/paytabs_functions.php';
 
 // Retrieve data returned in payment gateway callback
