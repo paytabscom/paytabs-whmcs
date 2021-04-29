@@ -2,7 +2,7 @@
 
 /**
  * Name:    PayTabs payment gateway
- * Version: 3.0.0
+ * Version: 3.1.1
  */
 
 if (!defined("WHMCS")) {
@@ -10,7 +10,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '3.1.0');
+define('PAYTABS_PAYPAGE_VERSION', '3.1.1');
 require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
@@ -235,12 +235,15 @@ function paytabs_refund($params)
     $currencyCode = $params['currency'];
     $cart_id = $params['invoiceid'];
 
+    $whmcsVersion = $params['whmcsVersion'];
+
 
     $pt_refundHolder = new PaytabsFollowupHolder();
     $pt_refundHolder
         ->set02Transaction(PaytabsEnum::TRAN_TYPE_REFUND, PaytabsEnum::TRAN_CLASS_ECOM)
         ->set03Cart($cart_id, $currencyCode, $refundAmount, 'Admin panel')
-        ->set30TransactionInfo($transactionIdToRefund);
+        ->set30TransactionInfo($transactionIdToRefund)
+        ->set99PluginInfo('WHMCS', $whmcsVersion, PAYTABS_PAYPAGE_VERSION);
 
     $values = $pt_refundHolder->pt_build();
 
