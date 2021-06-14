@@ -2,7 +2,7 @@
 
 /**
  * PayTabs v2 PHP SDK
- * Version: 2.0.8
+ * Version: 2.0.9
  */
 
 
@@ -178,6 +178,10 @@ abstract class PaytabsEnum
 
     //
 
+    const PP_ERR_DUPLICATE = 4;
+
+    //
+
     static function TranIsAuth($tran_type)
     {
         return strcasecmp($tran_type, PaytabsEnum::TRAN_TYPE_AUTH) == 0;
@@ -186,6 +190,14 @@ abstract class PaytabsEnum
     static function TranIsSale($tran_type)
     {
         return strcasecmp($tran_type, PaytabsEnum::TRAN_TYPE_SALE) == 0;
+    }
+
+    //
+
+    static function PPIsDuplicate($paypage)
+    {
+        $err_code = @$paypage->code;
+        return $err_code == PaytabsEnum::PP_ERR_DUPLICATE;
     }
 }
 

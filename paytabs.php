@@ -2,7 +2,7 @@
 
 /**
  * Name:    PayTabs payment gateway
- * Version: 3.1.1
+ * Version: 3.1.2
  */
 
 if (!defined("WHMCS")) {
@@ -10,7 +10,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '3.1.1');
+define('PAYTABS_PAYPAGE_VERSION', '3.1.2');
 require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
@@ -194,6 +194,22 @@ function paytabs_link($params)
     $success = $paypage->success;
     $message = $paypage->message;
     $payment_url = @$paypage->payment_url;
+
+
+    /**
+     * if Duplicate request error: get the latest payment url from the session
+     * if Success: save the payment url in the session
+     */
+
+    if ($success) {
+        paytabs_session_paypage($payment_url);
+    } else if (PaytabsEnum::PPIsDuplicate($paypage)) {
+        $paypage_session = paytabs_session_paypage();
+        if ($paypage_session) {
+            $success = true;
+            $payment_url = $paypage_session;
+        }
+    }
 
 
     /** 4. Display the PayTabs pay button */
