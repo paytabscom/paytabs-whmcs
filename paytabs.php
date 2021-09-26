@@ -2,7 +2,7 @@
 
 /**
  * Name:    PayTabs payment gateway
- * Version: 3.1.2
+ * Version: 3.1.3
  */
 
 if (!defined("WHMCS")) {
@@ -10,7 +10,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '3.1.2');
+define('PAYTABS_PAYPAGE_VERSION', '3.1.3');
 require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
@@ -157,7 +157,7 @@ function paytabs_link($params)
     // $country = PaytabsHelper::countryGetiso3($country);
 
     $pt_holder = new PaytabsRequestHolder();
-    $pt_holder->set01PaymentCode('all')
+    $pt_holder->set01PaymentCode('all', false)
         ->set02Transaction(PaytabsEnum::TRAN_TYPE_SALE, PaytabsEnum::TRAN_CLASS_ECOM)
         ->set03Cart(
             $invoiceId,
