@@ -1,0 +1,28 @@
+{
+  "schema": "1.0",
+  "type": "whmcs-gateways",
+  "name": "paytabs",
+  "license": "proprietary",
+  "category": "payments",
+  "description": {
+    "name": "PayTabs",
+    "tagline": "PayTabs is a 3rd party payment gateway. Ideal payment solutions for your internet business.",
+    "features": [
+      "Sale (Auth/Capture) mode",
+      "Refund"
+    ]
+  },
+  "logo": {
+    "filename": "paytabs.png"
+  },
+  "support": {
+    "homepage": "https:\/\/www.paytabs.com\/",
+    "docs_url": "https:\/\/github.com/paytabscom/paytabs-whmcs\/"
+  },
+  "authors": [
+    {
+      "name": "PayTabs integration team",
+      "homepage": "https:\/\/www.paytabs.com\/"
+    }
+  ]
+}
