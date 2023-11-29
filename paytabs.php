@@ -84,6 +84,10 @@ function paytabs_config()
             'FriendlyName' => 'Theme config id',
             'Type'         => 'text',
         ),
+        'alt_currency' => array(
+            'FriendlyName' => 'Alternative currency',
+            'Type'         => 'text',
+        ),
     );
 }
 
@@ -111,6 +115,8 @@ function paytabs_link($params)
     $_hide_shipping = (bool)$params['hide_shipping'];
 
     $_config_id     = (int)$params["config_id"];
+
+    $_alt_currency = (string)$params["alt_currency"];
 
 
     // Invoice Parameters
@@ -186,6 +192,7 @@ function paytabs_link($params)
         ->set07URLs($returnUrl, null)
         ->set08Lang('en')
         ->set11ThemeConfigId($_config_id)
+        ->set12AltCurrency($_alt_currency)
         ->set99PluginInfo('WHMCS', $whmcsVersion, PAYTABS_PAYPAGE_VERSION);
 
 
