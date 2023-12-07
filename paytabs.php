@@ -2,7 +2,7 @@
 
 /**
  * Name:    PayTabs payment gateway
- * Version: 3.2.0
+ * Version: 3.3.0
  */
 
 if (!defined("WHMCS")) {
@@ -10,7 +10,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '3.2.0');
+define('PAYTABS_PAYPAGE_VERSION', '3.3.0');
 require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
@@ -80,6 +80,14 @@ function paytabs_config()
             'FriendlyName' => 'Hide shipping information',
             'Type'         => 'yesno',
         ),
+        'config_id' => array(
+            'FriendlyName' => 'Theme config id',
+            'Type'         => 'text',
+        ),
+        'alt_currency' => array(
+            'FriendlyName' => 'Alternative currency',
+            'Type'         => 'text',
+        ),
     );
 }
 
@@ -105,6 +113,10 @@ function paytabs_link($params)
     $pt = paytabs_getApi($params);
 
     $_hide_shipping = (bool)$params['hide_shipping'];
+
+    $_config_id     = (int)$params["config_id"];
+
+    $_alt_currency = (string)$params["alt_currency"];
 
 
     // Invoice Parameters
@@ -179,6 +191,8 @@ function paytabs_link($params)
         ->set06HideShipping($_hide_shipping)
         ->set07URLs($returnUrl, null)
         ->set08Lang('en')
+        ->set11ThemeConfigId($_config_id)
+        ->set12AltCurrency($_alt_currency)
         ->set99PluginInfo('WHMCS', $whmcsVersion, PAYTABS_PAYPAGE_VERSION);
 
 
