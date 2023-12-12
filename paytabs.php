@@ -10,7 +10,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '3.3.0');
+define('PAYTABS_PAYPAGE_VERSION', '3.3.2');
 require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
@@ -167,6 +167,8 @@ function paytabs_link($params)
     /** 2. Fill post array */
 
     // $country = PaytabsHelper::countryGetiso3($country);
+    $rate = select_query("tblcurrencies", "id,rate,code", array("`code`" => $currencyCode));
+    $rate = mysql_fetch_array($rate);
 
     $pt_holder = new PaytabsRequestHolder();
     $pt_holder->set01PaymentCode('all', false)
@@ -188,6 +190,7 @@ function paytabs_link($params)
             $postcode,
             null
         )
+        ->set50UserDefined($rate["rate"])
         ->set06HideShipping($_hide_shipping)
         ->set07URLs($returnUrl, null)
         ->set08Lang('en')

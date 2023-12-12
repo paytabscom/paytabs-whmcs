@@ -112,10 +112,13 @@ if ($success) {
 	 * @param float $paymentFee      Payment fee (optional)
 	 * @param string $gatewayModule  Gateway module name
 	 */
-	addInvoicePayment(
+
+    $amount = (float)$paymentAmount / ((float)$verify_response->user_defined->udf1 > 0 ? 1 : (float)$verify_response->user_defined->udf1);
+
+    addInvoicePayment(
 		$invoiceId,
 		$transactionId,
-		$paymentAmount,
+		$amount,
 		$paymentFee,
 		$gatewayModuleName
 	);
