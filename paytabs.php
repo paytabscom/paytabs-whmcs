@@ -10,7 +10,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '3.3.2');
+define('PAYTABS_PAYPAGE_VERSION', '3.3.1');
 require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
