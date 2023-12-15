@@ -2,7 +2,7 @@
 
 /**
  * Name:    PayTabs payment gateway
- * Version: 3.3.0
+ * Version: 3.3.1
  */
 
 if (!defined("WHMCS")) {
