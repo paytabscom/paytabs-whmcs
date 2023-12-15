@@ -141,9 +141,15 @@ function redirectToInvoice($result)
 	$page = WHMCS\Utility\Environment\WebHelper::getBaseUrl();
 	$host = getServerUrl();
 
-	$url = $host . $page . '/viewinvoice.php?id=' . $invoiceId;
+	$url = rtrim($host . $page, '/') . '/viewinvoice.php';
 
-	$callbackUrl = $url . ($result ? '&paymentsuccess=true' : '&paymentfailed=true');
+	$res_str = $result ? 'paymentsuccess' : 'paymentfailed';
+	$params = http_build_query([
+		'id' => $invoiceId,
+		$res_str => 'true',
+	]);
+
+	$callbackUrl = $url . '?' . $params;
 
 	header('Location: ' . $callbackUrl);
 	die;
