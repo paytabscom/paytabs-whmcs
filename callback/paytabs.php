@@ -100,6 +100,13 @@ if ($success) {
 	 */
 	checkCbTransID($transactionId);
 
+	$rate = @(float)$verify_response->user_defined->udf1;
+
+	if ($rate) {
+		$amount = (float)$paymentAmount / $rate;
+	} else {
+		$amount = $paymentAmount;
+	}
 
 	/**
 	 * Add Invoice Payment.
@@ -112,10 +119,7 @@ if ($success) {
 	 * @param float $paymentFee      Payment fee (optional)
 	 * @param string $gatewayModule  Gateway module name
 	 */
-
-    $amount = (float)$paymentAmount / ((float)$verify_response->user_defined->udf1 > 0 ? 1 : (float)$verify_response->user_defined->udf1);
-
-    addInvoicePayment(
+	addInvoicePayment(
 		$invoiceId,
 		$transactionId,
 		$amount,

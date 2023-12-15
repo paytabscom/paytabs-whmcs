@@ -152,7 +152,6 @@ function paytabs_link($params)
     $callbackUrl = $systemUrl . 'modules/gateways/callback/' . $moduleName . '.php';
     $returnUrl = $callbackUrl . '?invoiceid=' . $invoiceId;
 
-
     // $products = invoice_products($invoiceId);
 
     // $items_arr = array_map(function ($p) {
@@ -167,8 +166,6 @@ function paytabs_link($params)
     /** 2. Fill post array */
 
     // $country = PaytabsHelper::countryGetiso3($country);
-    $rate = select_query("tblcurrencies", "id,rate,code", array("`code`" => $currencyCode));
-    $rate = mysql_fetch_array($rate);
 
     $pt_holder = new PaytabsRequestHolder();
     $pt_holder->set01PaymentCode('all', false)
@@ -190,7 +187,6 @@ function paytabs_link($params)
             $postcode,
             null
         )
-        ->set50UserDefined($rate["rate"])
         ->set06HideShipping($_hide_shipping)
         ->set07URLs($returnUrl, null)
         ->set08Lang('en')
@@ -198,6 +194,11 @@ function paytabs_link($params)
         ->set12AltCurrency($_alt_currency)
         ->set99PluginInfo('WHMCS', $whmcsVersion, PAYTABS_PAYPAGE_VERSION);
 
+
+    $rate = whmcs_get_rate($currencyCode);
+    if ($rate != 1) {
+        $pt_holder->set50UserDefined($rate);
+    }
 
     //
 
@@ -318,4 +319,21 @@ function invoice_products($invoiceId)
     $products = $results['items']['item'];
 
     return $products;
+}
+
+function whmcs_get_rate($currencyCode)
+{
+    $rate = 1;
+    $db_currencies_query = localAPI('GetCurrencies');
+    if ($db_currencies_query['result'] == 'success') {
+        $db_currencies = $db_currencies_query['currencies']['currency'];
+        foreach ($db_currencies as $db_currency) {
+            if (strcasecmp($db_currency['code'], $currencyCode) == 0) {
+                $rate = $db_currency['rate'];
+                break;
+            }
+        }
+    }
+
+    return $rate;
 }
