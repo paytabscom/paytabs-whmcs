@@ -52,8 +52,8 @@ $success = $verify_response->success;
 $message = $verify_response->message;
 $transactionId = $verify_response->transaction_id;
 
-$paymentAmount = $verify_response->cart_amount;
-$paymentCurrency = $verify_response->cart_currency;
+$paymentAmount = $verify_response->tran_total;
+$paymentCurrency = $verify_response->tran_currency;
 
 
 /**
@@ -151,17 +151,6 @@ function redirectToInvoice($result)
 
 function getServerUrl()
 {
-	$s = $_SERVER;
-
-	$ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true : false;
-
-	$sp = strtolower($s['SERVER_PROTOCOL']);
-	$protocol = substr($sp, 0, strpos($sp, '/')) . (($ssl) ? 's' : '');
-
-	$port = $s['SERVER_PORT'];
-	$port = ((!$ssl && $port == '80') || ($ssl && $port == '443')) ? '' : ':' . $port;
-
-	$host = isset($s['HTTP_HOST']) ? $s['HTTP_HOST'] : $s['SERVER_NAME'];
-
-	return $protocol . '://' . $host;
+	$baseUrl = \App::getSystemURL();
+	return $baseUrl;
 }
