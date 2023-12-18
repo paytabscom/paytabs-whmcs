@@ -104,6 +104,7 @@ if ($success) {
 
 	if ($rate) {
 		$amount = (float)$paymentAmount / $rate;
+		logTransaction($gatewayParams['name'], "Order ".$_POST['cartId'] . " done with diffrant currency than base , base currency =  $rate $verify_response->cart_currency", $transactionStatus);
 	} else {
 		$amount = $paymentAmount;
 	}
