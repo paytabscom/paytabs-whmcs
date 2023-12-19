@@ -28,10 +28,14 @@ if (!$gatewayParams['type']) {
 require_once '../paytabs_files/paytabs_core.php';
 require_once '../paytabs_files/paytabs_functions.php';
 
+$paymentMethod = $gatewayParams['paymentmethod'];
+
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
 $invoiceId = $_REQUEST["invoiceid"];
 $paymentRef = $_POST['tranRef']; //transaction id from paytabs
+
+PaytabsHelper::log("Return triggered, Order {$invoiceId}, Transaction {$paymentRef}", 1);
 
 if (!$paymentRef) {
 	die('Payment reference is missing');
@@ -55,7 +59,6 @@ $transactionId = $verify_response->transaction_id;
 $paymentAmount = $verify_response->tran_total;
 $paymentCurrency = $verify_response->tran_currency;
 
-
 /**
  * Validate Callback Invoice ID.
  *
@@ -69,7 +72,7 @@ $paymentCurrency = $verify_response->tran_currency;
  * @param int $invoiceId Invoice ID
  * @param string $gatewayName Gateway Name
  */
-$invoiceId = checkCbInvoiceID($invoiceId, $gatewayParams['name']);
+$invoiceId = checkCbInvoiceID($invoiceId, $paymentMethod);
 
 
 /**
@@ -85,7 +88,7 @@ $invoiceId = checkCbInvoiceID($invoiceId, $gatewayParams['name']);
  * @param string $transactionStatus  Status
  */
 $transactionStatus = $success ? 'Success' : 'Failure';
-logTransaction($gatewayParams['name'], $_POST, $transactionStatus);
+PaytabsHelper::log("Result: {$transactionStatus}, Order {$invoiceId}", 1);
 
 if ($success) {
 	/**
@@ -103,8 +106,8 @@ if ($success) {
 	$rate = @(float)$verify_response->user_defined->udf1;
 
 	if ($rate) {
-		$amount = (float)$paymentAmount / $rate;
-		logTransaction($gatewayParams['name'], "Order ".$_POST['cartId'] . " done with diffrant currency than base , base currency =  $rate $verify_response->cart_currency", $transactionStatus);
+		$amount = round((float)$paymentAmount / $rate, 2);
+		PaytabsHelper::log("Rate flag detected {$rate}, Order {$invoiceId}, tran currency {$paymentCurrency}, Old={$paymentAmount}, Converted={$amount}", 1);
 	} else {
 		$amount = $paymentAmount;
 	}
@@ -128,7 +131,7 @@ if ($success) {
 		$gatewayModuleName
 	);
 } else {
-	logTransaction($gatewayParams['name'], json_encode($verify_response), $transactionStatus);
+	PaytabsHelper::log("Transaction failed: " . (json_encode($verify_response)), 2);
 }
 
 redirectToInvoice($success);

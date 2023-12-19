@@ -113,9 +113,7 @@ function paytabs_link($params)
     $pt = paytabs_getApi($params);
 
     $_hide_shipping = (bool)$params['hide_shipping'];
-
-    $_config_id     = (int)$params["config_id"];
-
+    $_config_id = (int)$params["config_id"];
     $_alt_currency = (string)$params["alt_currency"];
 
 
@@ -197,6 +195,7 @@ function paytabs_link($params)
 
     $rate = whmcs_get_rate($currencyCode);
     if ($rate != 1) {
+        PaytabsHelper::log("Rate flag enabled, rate={$rate}, {$currencyCode}, Order {$invoiceId}", 1);
         $pt_holder->set50UserDefined($rate);
     }
 
@@ -212,7 +211,7 @@ function paytabs_link($params)
     $success = $paypage->success;
     $message = $paypage->message;
     $payment_url = @$paypage->payment_url;
-
+    $tran_ref = @$paypage->tran_ref;
 
     /**
      * if Duplicate request error: get the latest payment url from the session
@@ -221,7 +220,9 @@ function paytabs_link($params)
 
     if ($success) {
         paytabs_session_paypage($payment_url);
+        PaytabsHelper::log("Payment page created: {$tran_ref}, Order {$invoiceId}", 1);
     } else if (PaytabsEnum::PPIsDuplicate($paypage)) {
+        PaytabsHelper::log("Duplicate request, Order {$invoiceId}", 2);
         $paypage_session = paytabs_session_paypage();
         if ($paypage_session) {
             $success = true;
@@ -233,14 +234,13 @@ function paytabs_link($params)
     /** 4. Display the PayTabs pay button */
 
     if ($success) {
-
         $htmlOutput = '<form method="get" action="' . $payment_url . '">';
         $htmlOutput .= '<input type="submit" value="' . $langPayNow . '" class="btn btn-primary" />';
         $htmlOutput .= '</form>';
     } else {
         $htmlOutput = '<div class="alert alert-danger">' . $message . '</div>';
 
-        paytabs_error_log(json_encode($paypage));
+        PaytabsHelper::log(json_encode($paypage), 3);
     }
 
     return $htmlOutput;
@@ -286,7 +286,7 @@ function paytabs_refund($params)
     $success = $refundRes->success;
     $message = $refundRes->message;
     $pending_success = $refundRes->pending_success;
-    $refundTransactionId = @$refundRes->refund_request_id;
+    $refundTransactionId = @$refundRes->tran_ref;
     if (!$refundTransactionId) $refundTransactionId = 0;
 
     // perform API call to initiate refund and interpret result

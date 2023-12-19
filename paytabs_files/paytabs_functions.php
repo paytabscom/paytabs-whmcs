@@ -1,8 +1,9 @@
 <?php
 
-function paytabs_error_log($message)
+function paytabs_error_log($message, $severity)
 {
-    logTransaction('paytabs', $message, 'Failure');
+    $severity_str = PAYTABS_DEBUG_SEVERITY[--$severity];
+    logTransaction('paytabs', $message, $severity_str);
 }
 
 
