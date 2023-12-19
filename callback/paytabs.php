@@ -28,10 +28,14 @@ if (!$gatewayParams['type']) {
 require_once '../paytabs_files/paytabs_core.php';
 require_once '../paytabs_files/paytabs_functions.php';
 
+$paymentMethod = $gatewayParams['paymentmethod'];
+
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
-$invoiceId = $_REQUEST["invoiceid"];
+$p_invoiceId = $_REQUEST["invoiceid"];
 $paymentRef = $_POST['tranRef']; //transaction id from paytabs
+
+PaytabsHelper::log("Return triggered, Order {$p_invoiceId}, Transaction {$paymentRef}", 1);
 
 if (!$paymentRef) {
 	die('Payment reference is missing');
@@ -52,9 +56,15 @@ $success = $verify_response->success;
 $message = $verify_response->message;
 $transactionId = $verify_response->transaction_id;
 
-$paymentAmount = $verify_response->cart_amount;
-$paymentCurrency = $verify_response->cart_currency;
+$paymentAmount = $verify_response->tran_total;
+$paymentCurrency = $verify_response->tran_currency;
 
+// Confirm the invoice ID
+$invoiceId = $verify_response->cart_id;
+
+if ($p_invoiceId != $invoiceId) {
+	PaytabsHelper::log("Invoice id {$p_invoiceId}, Cart id {$invoiceId}", 3);
+}
 
 /**
  * Validate Callback Invoice ID.
@@ -69,7 +79,7 @@ $paymentCurrency = $verify_response->cart_currency;
  * @param int $invoiceId Invoice ID
  * @param string $gatewayName Gateway Name
  */
-$invoiceId = checkCbInvoiceID($invoiceId, $gatewayParams['name']);
+$invoiceId = checkCbInvoiceID($invoiceId, $paymentMethod);
 
 
 /**
@@ -85,7 +95,7 @@ $invoiceId = checkCbInvoiceID($invoiceId, $gatewayParams['name']);
  * @param string $transactionStatus  Status
  */
 $transactionStatus = $success ? 'Success' : 'Failure';
-logTransaction($gatewayParams['name'], $_POST, $transactionStatus);
+PaytabsHelper::log("Result: {$transactionStatus}, Order {$invoiceId}", 1);
 
 if ($success) {
 	/**
@@ -100,6 +110,14 @@ if ($success) {
 	 */
 	checkCbTransID($transactionId);
 
+	$rate = @(float)$verify_response->user_defined->udf1;
+
+	if ($rate) {
+		$amount = round((float)$paymentAmount / $rate, 2);
+		PaytabsHelper::log("Rate flag detected {$rate}, Order {$invoiceId}, tran currency {$paymentCurrency}, Old={$paymentAmount}, Converted={$amount}", 1);
+	} else {
+		$amount = $paymentAmount;
+	}
 
 	/**
 	 * Add Invoice Payment.
@@ -115,12 +133,12 @@ if ($success) {
 	addInvoicePayment(
 		$invoiceId,
 		$transactionId,
-		$paymentAmount,
+		$amount,
 		$paymentFee,
 		$gatewayModuleName
 	);
 } else {
-	logTransaction($gatewayParams['name'], json_encode($verify_response), $transactionStatus);
+	PaytabsHelper::log("Transaction failed: " . (json_encode($verify_response)), 2);
 }
 
 redirectToInvoice($success);
@@ -134,9 +152,15 @@ function redirectToInvoice($result)
 	$page = WHMCS\Utility\Environment\WebHelper::getBaseUrl();
 	$host = getServerUrl();
 
-	$url = $host . $page . '/viewinvoice.php?id=' . $invoiceId;
+	$url = rtrim($host . $page, '/') . '/viewinvoice.php';
 
-	$callbackUrl = $url . ($result ? '&paymentsuccess=true' : '&paymentfailed=true');
+	$res_str = $result ? 'paymentsuccess' : 'paymentfailed';
+	$params = http_build_query([
+		'id' => $invoiceId,
+		$res_str => 'true',
+	]);
+
+	$callbackUrl = $url . '?' . $params;
 
 	header('Location: ' . $callbackUrl);
 	die;
@@ -144,17 +168,6 @@ function redirectToInvoice($result)
 
 function getServerUrl()
 {
-	$s = $_SERVER;
-
-	$ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true : false;
-
-	$sp = strtolower($s['SERVER_PROTOCOL']);
-	$protocol = substr($sp, 0, strpos($sp, '/')) . (($ssl) ? 's' : '');
-
-	$port = $s['SERVER_PORT'];
-	$port = ((!$ssl && $port == '80') || ($ssl && $port == '443')) ? '' : ':' . $port;
-
-	$host = isset($s['HTTP_HOST']) ? $s['HTTP_HOST'] : $s['SERVER_NAME'];
-
-	return $protocol . '://' . $host;
+	$baseUrl = \App::getSystemURL();
+	return $baseUrl;
 }
