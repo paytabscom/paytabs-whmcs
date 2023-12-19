@@ -32,10 +32,10 @@ $paymentMethod = $gatewayParams['paymentmethod'];
 
 // Retrieve data returned in payment gateway callback
 // Varies per payment gateway
-$invoiceId = $_REQUEST["invoiceid"];
+$p_invoiceId = $_REQUEST["invoiceid"];
 $paymentRef = $_POST['tranRef']; //transaction id from paytabs
 
-PaytabsHelper::log("Return triggered, Order {$invoiceId}, Transaction {$paymentRef}", 1);
+PaytabsHelper::log("Return triggered, Order {$p_invoiceId}, Transaction {$paymentRef}", 1);
 
 if (!$paymentRef) {
 	die('Payment reference is missing');
@@ -58,6 +58,13 @@ $transactionId = $verify_response->transaction_id;
 
 $paymentAmount = $verify_response->tran_total;
 $paymentCurrency = $verify_response->tran_currency;
+
+// Confirm the invoice ID
+$invoiceId = $verify_response->cart_id;
+
+if ($p_invoiceId != $invoiceId) {
+	PaytabsHelper::log("Invoice id {$p_invoiceId}, Cart id {$invoiceId}", 3);
+}
 
 /**
  * Validate Callback Invoice ID.
