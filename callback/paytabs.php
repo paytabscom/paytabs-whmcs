@@ -149,7 +149,8 @@ function redirectToInvoice($result)
 {
 	global $invoiceId;
 
-	$page = WHMCS\Utility\Environment\WebHelper::getBaseUrl();
+	// $page = WHMCS\Utility\Environment\WebHelper::getBaseUrl();
+	$page = '';
 	$host = getServerUrl();
 
 	$url = rtrim($host . $page, '/') . '/viewinvoice.php';
