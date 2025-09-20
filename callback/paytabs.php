@@ -1,5 +1,7 @@
 <?php
 
+use WHMCS\Database\Capsule;
+
 /**
  * WHMCS Payment Callback File
  *
@@ -81,6 +83,16 @@ if ($p_invoiceId != $invoiceId) {
  */
 $invoiceId = checkCbInvoiceID($invoiceId, $paymentMethod);
 
+$invoiceTotal = null;
+try {
+    $invoiceRow = Capsule::table('tblinvoices')->select('total')->where('id', $invoiceId)->first();
+    if ($invoiceRow && isset($invoiceRow->total)) {
+        $invoiceTotal = (float) $invoiceRow->total;
+    }
+} catch (\Throwable $e) {
+    PaytabsHelper::log('Failed to load invoice total: ' . $e->getMessage(), 3);
+}
+
 
 /**
  * Log Transaction.
@@ -112,9 +124,14 @@ if ($success) {
 
 	$rate = @(float)$verify_response->user_defined->udf1;
 
-	if ($rate) {
+	if ($invoiceTotal !== null) {
+		$amount = $invoiceTotal; // always record the WHMCS invoice total (USD)
+		if ($rate) {
+			PaytabsHelper::log("Rate flag ignored {$rate}, Order {$invoiceId}, tran currency {$paymentCurrency}, Original={$paymentAmount}, Invoice={$amount}", 1);
+		}
+	} elseif ($rate) {
 		$amount = round((float)$paymentAmount / $rate, 2);
-		PaytabsHelper::log("Rate flag detected {$rate}, Order {$invoiceId}, tran currency {$paymentCurrency}, Old={$paymentAmount}, Converted={$amount}", 1);
+		PaytabsHelper::log("Rate fallback {$rate}, Order {$invoiceId}, tran currency {$paymentCurrency}, Old={$paymentAmount}, Converted={$amount}", 1);
 	} else {
 		$amount = $paymentAmount;
 	}
