@@ -50,7 +50,21 @@ if (!$paymentRef) {
  */
 
 $pt = paytabs_getApi($gatewayParams);
-$verify_response = $pt->verify_payment($paymentRef);
+$_count = 0;
+$rate = null;
+do {
+	sleep(3); // to avoid "user_defined" missing in response
+	$_count++;
+	$verify_response = $pt->verify_payment($paymentRef);
+
+	$rate = isset($verify_response->user_defined->udf1) ? (float) $verify_response->user_defined->udf1 : null;
+
+	PaytabsHelper::log("Attempt {$_count}, Cart id {$p_invoiceId}", 1);
+} while ($rate === null && $_count < 20);
+
+if ($_count >= 20) {
+	PaytabsHelper::log("Max attempts reached, user_defined still missing, Cart id {$p_invoiceId}", 3);
+}
 
 $success = $verify_response->success;
 $message = $verify_response->message;
@@ -110,10 +124,10 @@ if ($success) {
 	 */
 	checkCbTransID($transactionId);
 
-	$rate = @(float)$verify_response->user_defined->udf1;
+	$rate = @(float) $verify_response->user_defined->udf1;
 
 	if ($rate) {
-		$amount = round((float)$paymentAmount / $rate, 2);
+		$amount = round((float) $paymentAmount / $rate, 2);
 		PaytabsHelper::log("Rate flag detected {$rate}, Order {$invoiceId}, tran currency {$paymentCurrency}, Old={$paymentAmount}, Converted={$amount}", 1);
 	} else {
 		$amount = $paymentAmount;

@@ -2,7 +2,7 @@
 
 /**
  * Name:    PayTabs payment gateway
- * Version: 3.5.0
+ * Version: 3.5.1
  */
 
 if (!defined("WHMCS")) {
@@ -10,7 +10,7 @@ if (!defined("WHMCS")) {
 }
 
 
-define('PAYTABS_PAYPAGE_VERSION', '3.5.0');
+define('PAYTABS_PAYPAGE_VERSION', '3.5.1');
 require_once 'paytabs_files/paytabs_core.php';
 require_once 'paytabs_files/paytabs_functions.php';
 
@@ -196,6 +196,8 @@ function paytabs_link($params)
     $rate = whmcs_get_rate($currencyCode);
     if ($rate != 1) {
         PaytabsHelper::log("Rate flag enabled, rate={$rate}, {$currencyCode}, Order {$invoiceId}", 1);
+        $pt_holder->set50UserDefined($rate);
+    } else {
         $pt_holder->set50UserDefined($rate);
     }
 
